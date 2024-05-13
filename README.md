@@ -1,36 +1,10 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# GarmentGenie
 
-## Getting Started
+GarmentGenie is an AI-powered apparel generator that allows users to create custom t-shirt designs by providing input on collar type, fit, fabric, and design prompt. This project utilizes the OpenAI API to generate images based on user specifications.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- **Customizable Design**: Users can select various options such as collar type, fit type, fabric etc. and provide a design prompt to generate unique t-shirt designs.
+- **Interactive Interface**: The web-based interface provides an intuitive user experience with input fields, tabs for selecting options, and a slider for adjusting design parameters.
+- **OpenAI Integration**: GarmentGenie leverages the OpenAI API for image generation, ensuring high-quality and visually appealing apparel designs.
+- **Responsive Design**: The application is designed to be responsive, providing a seamless experience across different devices and screen sizes.
