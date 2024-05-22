@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import OpenAI from "openai";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Slider } from "@/components/ui/slider";
 
 export default function GenerateImage() {
   const [prompt, setPrompt] = useState("");
@@ -14,14 +13,18 @@ export default function GenerateImage() {
   const [fabricType, setFabricType] = useState("cotton");
   const [ageType, setAgeType] = useState("0-18 years");
   const [apiKey, setApiKey] = useState("");
+  const [description, setDescription] = useState("");
+  const [generatedTitle, setGeneratedTitle] = useState("");
+  const [generatedDescription, setGeneratedDescription] = useState("");
 
   const handleGenerateClick = async () => {
     try {
       let imageUrl;
       const inputPrompt =
-        "Assume you are a very profound fashion designer, create an image of a t-shirt with the collar type as " +
+        "Assume you are a very profound fashion designer. " +
+        "create 2x2 grid of images. each image will contain the same tshirt photographed from a different angle with collar type as " +
         collarType +
-        "and fit type as " +
+        " and fit type as " +
         fitType +
         " and fabric type as " +
         fabricType +
@@ -37,21 +40,45 @@ export default function GenerateImage() {
 
       try {
         const response = await openai.images.generate({
-          model: "dall-e-3",
+          model: "dall-e-2",
           prompt: inputPrompt,
           n: 1,
-          size: "1024x1024",
+          size: "512x512",
         });
         imageUrl = response.data[0].url;
       } catch (error) {
         console.error("error calling api", error);
       }
 
-      if (imageUrl) {
-        setImageUrl(imageUrl);
-      }
+      const completion = await openai.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content:
+              "you are a highly successful fashion marketer who has generated millions of dollars in sales. " +
+              "As an expert in crafting copies for apparel, you can write the best copy depending upon garment type. " +
+              "Write a compelling product description for the following apparel image that highlights its unique features, " +
+              "style recommendations, and why it's a must-have: " +
+              imageUrl,
+          },
+          {
+            role: "user",
+            content:
+              "Please generate a title and description separated by a delimiter ',' for , ${inputPrompt}, ${collarType}, ${fitType}, ${fabricType}.",
+          },
+        ],
+        model: "gpt-3.5-turbo",
+      });
+
+      const titleContent =
+        completion.choices[0]?.message?.content || "No title received";
+      const descriptionContent =
+        completion.choices[1]?.message?.content || "No description received";
+
+      setGeneratedTitle(titleContent);
+      setGeneratedDescription(descriptionContent);
     } catch (error) {
-      console.error("error generating image:", error);
+      console.error("Error generating image or description:", error);
     }
   };
 
@@ -178,18 +205,40 @@ export default function GenerateImage() {
               placeholder="Enter a prompt"
               type="text"
             />
-          </div>
-
-          <div className="w-full max-w-sm flex flex-col items-center gap-2 pb-4">
-            <Button onClick={handleGenerateClick} className="w-full max-w-xs">
-              Generate
-            </Button>
+            {/* <Input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full"
+              placeholder="Enter description"
+              type="text"
+            /> */}
+            <div className="w-full max-w-sm flex flex-col items-center gap-2 pb-4">
+              <Button onClick={handleGenerateClick} className="w-full max-w-xs">
+                Generate Image
+              </Button>
+              <Input
+                value={generatedTitle}
+                onChange={(e) => setGeneratedTitle(e.target.value)}
+                className="w-full"
+                placeholder="Generated Title"
+                type="text"
+                disabled
+              />
+              <Input
+                value={generatedDescription}
+                onChange={(e) => setGeneratedDescription(e.target.value)}
+                className="w-full"
+                placeholder="Generated Description"
+                type="text"
+                disabled
+              />
+            </div>
           </div>
         </div>
 
         <div className="w-1/2 flex w-full max-w-lg justify-center items-center gap-4 py-4">
           <img
-            alt="Generated Image"
+            alt="Generated Image with Description"
             className="rounded"
             src={imageUrl}
             width={400}
