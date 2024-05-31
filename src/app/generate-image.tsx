@@ -16,10 +16,12 @@ export default function GenerateImage() {
   const [description, setDescription] = useState("");
   const [generatedTitle, setGeneratedTitle] = useState("");
   const [generatedDescription, setGeneratedDescription] = useState("");
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isGeneratingCopy, setIsGeneratingCopy] = useState(false);
 
-  const handleGenerateClick = async () => {
+  const generateImage = async () => {
     try {
-      let imageUrl;
+      let imageUrl: string;
       const inputPrompt =
         "Assume you are a very profound fashion designer. " +
         "create 2x2 grid of images. each image will contain the same tshirt photographed from a different angle with collar type as " +
@@ -39,17 +41,36 @@ export default function GenerateImage() {
       });
 
       try {
+        setIsGeneratingImage(true);
         const response = await openai.images.generate({
           model: "dall-e-2",
           prompt: inputPrompt,
           n: 1,
           size: "512x512",
         });
-        imageUrl = response.data[0].url;
+        imageUrl = response.data[0].url as string;
+        setImageUrl(imageUrl);
+        setIsGeneratingImage(false);
       } catch (error) {
         console.error("error calling api", error);
       }
+    } catch (error) {
+      setIsGeneratingImage(false);
+      console.error("Error generating image or description:", error);
+    }
+  };
 
+  const generateCopy = async () => {
+    try {
+      setGeneratedTitle("");
+      setGeneratedDescription("");
+
+      const openai = new OpenAI({
+        dangerouslyAllowBrowser: true,
+        apiKey: apiKey,
+      });
+
+      setIsGeneratingCopy(true);
       const completion = await openai.chat.completions.create({
         messages: [
           {
@@ -77,9 +98,15 @@ export default function GenerateImage() {
 
       setGeneratedTitle(titleContent);
       setGeneratedDescription(descriptionContent);
+      setIsGeneratingCopy(false);
     } catch (error) {
-      console.error("Error generating image or description:", error);
+      console.error("Error generating copy:", error);
+      setIsGeneratingCopy(false);
     }
+  };
+
+  const handleGenerateClick = async () => {
+    await Promise.all([generateImage(), generateCopy()]);
   };
 
   return (
@@ -96,14 +123,14 @@ export default function GenerateImage() {
       />
       <hr className="w-full border border-gray-300 my-8" />
       <div className="w-full max-w-lg flex flex-col items-center gap-2 text-center">
-        <h2 className="text-2xl font-semibold">Generate an Image</h2>
+        <h2 className="text-2xl font-semibold">Generate Garment Designs!</h2>
         <p className="text-gray-500 dark:text-gray-400">
-          Enter a prompt to generate an image.
+          Your perfect companion to generate designs for your D2C apparel brand!
         </p>
       </div>
 
-      <div className="w-full flex">
-        <div className="w-1/2 flex flex-col w-full items-center justify-between gap-2">
+      <div className="w-full flex gap-8">
+        <div className="w-1/2 flex flex-col items-center justify-between gap-2">
           <div className="flex flex-col w-full gap-2">
             <h2 className="font-semibold ml-2">Collar</h2>
             <Tabs defaultValue="round-neck" className="w-[400px]">
@@ -154,7 +181,7 @@ export default function GenerateImage() {
             <Tabs defaultValue="cotton" className="w-[400px]">
               <TabsList>
                 <TabsTrigger
-                  value="Cotton"
+                  value="cotton"
                   onClick={() => setFabricType("Cotton")}
                 >
                   Cotton
@@ -201,48 +228,61 @@ export default function GenerateImage() {
             <Input
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              className="w-full"
+              className="w-full h-20 mt-8"
               placeholder="Enter a prompt"
               type="text"
             />
-            {/* <Input
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full"
-              placeholder="Enter description"
-              type="text"
-            /> */}
-            <div className="w-full max-w-sm flex flex-col items-center gap-2 pb-4">
-              <Button onClick={handleGenerateClick} className="w-full max-w-xs">
-                Generate Image
-              </Button>
-              <Input
-                value={generatedTitle}
-                onChange={(e) => setGeneratedTitle(e.target.value)}
-                className="w-full"
-                placeholder="Generated Title"
-                type="text"
-                disabled
-              />
-              <Input
-                value={generatedDescription}
-                onChange={(e) => setGeneratedDescription(e.target.value)}
-                className="w-full"
-                placeholder="Generated Description"
-                type="text"
-                disabled
-              />
+
+            <div className="w-full flex flex-col items-center  gap-2 pb-4">
+              <div className="w-full flex items-center justify-between">
+                <Tabs defaultValue="512" className="w-[200px]">
+                  <TabsList>
+                    <TabsTrigger value="512">512 * 512</TabsTrigger>
+                    <TabsTrigger value="1024" disabled>
+                      1024 * 1024
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                <Button
+                  onClick={handleGenerateClick}
+                  className="w-full max-w-xs"
+                >
+                  Generate Image
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="w-1/2 flex w-full max-w-lg justify-center items-center gap-4 py-4">
+        <div className="w-1/2 flex flex-col justify-center items-center gap-4 py-4">
+          <div className="w-full h-10 flex items-center justify-center">
+            {isGeneratingCopy && <span>Loading...</span>}
+          </div>
           <img
             alt="Generated Image with Description"
             className="rounded"
             src={imageUrl}
             width={400}
             height={200}
+          />
+
+          <Input
+            value={generatedTitle}
+            onChange={(e) => setGeneratedTitle(e.target.value)}
+            className="w-full"
+            placeholder={isGeneratingCopy ? "Loading..." : "Generated Title"}
+            type="text"
+            disabled
+          />
+          <Input
+            value={generatedDescription}
+            onChange={(e) => setGeneratedDescription(e.target.value)}
+            className="w-full"
+            placeholder={
+              isGeneratingCopy ? "Loading..." : "Generated Description"
+            }
+            type="text"
+            disabled
           />
         </div>
       </div>
